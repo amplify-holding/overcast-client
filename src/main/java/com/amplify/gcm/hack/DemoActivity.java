@@ -61,6 +61,7 @@ public class DemoActivity extends Activity {
             }
             else {
                 mDisplay.append("Already registered, registration ID = " + registrationId);
+                sendRegistrationInTheBackground();
             }
         }
         else {
@@ -159,6 +160,20 @@ public class DemoActivity extends Activity {
         }.execute(null, null, null);
     }
 
+    private void sendRegistrationInTheBackground() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    sendRegistrationIdToBackend();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(null, null, null);
+    }
+
     public void onClick(View view) {
         if(view == findViewById(R.id.send)) {
             new AsyncTask<Void, Void, String>() {
@@ -209,7 +224,7 @@ public class DemoActivity extends Activity {
         //http://localhost:8080/gcm-demo/register
         //POST
         //regId=[registration id]
-        URL url = new URL("http://" + SERVICES_IP + ":8080/gcm-demo/register");
+        URL url = new URL("http://" + SERVICES_IP + ":8080/registration");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         conn.setReadTimeout(10000);
@@ -218,7 +233,7 @@ public class DemoActivity extends Activity {
         conn.setDoInput(true);
 
         Writer writer = new OutputStreamWriter(conn.getOutputStream());
-        writer.write("regId="+registrationId);
+        writer.write(registrationId);
         writer.flush();
         writer.close();
 

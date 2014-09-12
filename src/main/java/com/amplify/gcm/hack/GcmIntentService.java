@@ -53,15 +53,22 @@ public class GcmIntentService extends IntentService {
             else if(messageType.equals(GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE)) {
                 Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
 
-                sendNotification("Received: " + extras.toString());
+                //sendNotification("Received: " + extras.toString());
                 Log.i(TAG, "Received: " + extras.toString());
                 String protocol = extras.getString("protocol-used");
                 String receivedTime = extras.getString("received-time");
                 String sentTime = extras.getString("sent-time");
                 String regId = getRegistrationId(this);
 
+                Log.i(TAG, "Perf:" + sentTime +":" + receivedTime);
+
                 try {
-                    sendPerformanceMetric(protocol, receivedTime, sentTime, regId);
+                    String params = "";
+                    if(extras.containsKey("perf-type")) {
+                        params = "&perf-type=" + extras.getString("perf-type");
+                    }
+
+                    sendPerformanceMetric(protocol, receivedTime, sentTime, regId, params);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -83,11 +90,11 @@ public class GcmIntentService extends IntentService {
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    private void sendPerformanceMetric(String protocol, String receivedTime, String sentTime, String regId) throws IOException {
+    private void sendPerformanceMetric(String protocol, String receivedTime, String sentTime, String regId, String additionalParams) throws IOException {
         //http://localhost:8080/gcm-demo/register
         //POST
         //regId=[registration id]
-        String params = "?receivedTime=" + receivedTime + "&sentTime="+sentTime;
+        String params = "?receivedTime=" + receivedTime + "&sentTime="+sentTime+additionalParams;
 
         URL url = new URL("http://" + SERVICES_IP + ":8080/" + protocol + "/performance/metrics" + params);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
