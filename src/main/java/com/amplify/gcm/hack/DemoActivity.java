@@ -24,13 +24,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DemoActivity extends Activity {
     private static final String TAG = "GCM Demo";
 
-    private static final String PROPERTY_REG_ID = "registration_id";
+    public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     private static final String SENDER_ID = "906288492058";
 
-    private static final String SERVICES_IP = "10.59.1.36";
+    private static final String SERVICES_IP = "192.168.1.9";
+    //private static final String SERVICES_IP = "10.59.1.36";
     //private static final String SERVICES_IP = "192.168.1.104";
 
     private TextView mDisplay;
@@ -42,6 +43,8 @@ public class DemoActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.i(TAG, "Starting the demo activity");
 
         setContentView(R.layout.main);
         mDisplay = (TextView) findViewById(R.id.display);
@@ -63,6 +66,18 @@ public class DemoActivity extends Activity {
         else {
             Log.i(TAG, "No valid Google Play Services APK found");
         }
+
+        new AsyncTask<String, Void, Void >() {
+            @Override
+            protected Void doInBackground(String... strings) {
+                try {
+                    NTPClient.syncServerTime(strings[0]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute("time-d.nist.gov");
     }
 
     @Override
@@ -190,7 +205,7 @@ public class DemoActivity extends Activity {
     }
 
     private void sendRegistrationIdToBackend() throws IOException {
-        Log.i(TAG, "Sending registration id to server over 'HTTP'");
+        Log.i(TAG, "Sending registration id "+ registrationId + " to server over 'HTTP'");
         //http://localhost:8080/gcm-demo/register
         //POST
         //regId=[registration id]
